@@ -1,0 +1,14 @@
+[project]
+name = "music-tagger"
+version = "0.1.0"
+description = "Build and apply a tiered genre typology (genre / subgenre / niche) in a rekordbox library"
+requires-python = ">=3.11"
+dependencies = [
+    "pyrekordbox>=0.4",
+    "sqlalchemy>=2.0",
+]
+
+[tool.uv]
+# the CLI lives inside the skill directory so the skill stays self-contained:
+#   uv run python skills/music-tagger/scripts/rbtag.py survey
+package = false

@@ -1,0 +1,222 @@
+{
+  "_design": {
+    "tier1": "rekordbox Genre field - 15 general families. Single value, native to rekordbox browser/CDJ export.",
+    "tier2": "My Tag column 'Subgenre' - one per track. Flat list, globally unique names.",
+    "tier3": "My Tag column 'Niche' - zero or one per track, only when it adds real information. Flat list, globally unique names.",
+    "rule": "tags per track = 1 (tier1) + 1 (tier2) + 0..1 (tier3) = 2 or 3.",
+    "normalisation": "tier2/tier3 names must not collide with each other; identical albums get their majority verdict."
+  },
+  "groups": [
+    {
+      "tier1": "Techno",
+      "from": ["Techno", "Techno (Raw / Deep / Hypnotic)", "Hard Techno"],
+      "tier2": {
+        "Raw / Deep / Hypnotic": "loopy, deep, hypnotic club techno (Hypnus, WSNWG, Tome, UFO95, Polygonia, Mathys Lenne)",
+        "Peak Time / Driving": "driving big-room techno (Robert Hood, Planetary Assault Systems, Fuse Imprint, Tresor)",
+        "Hard Techno": "fast, distorted, hard (Lask, Indira Paganotto, Vortek's, Odiom, Undergroundtekno)",
+        "Melodic Techno": "melodic/melancholic arps and pads, techno-leaning",
+        "Minimal / Deep Tech": "minimal techno-house (Villalobos, Mathew Jonson, John Tejada, Cobblestone Jazz)",
+        "Dub Techno": "chord-and-delay techno, Basic Channel lineage",
+        "Acid Techno": "303-led techno",
+        "Hardgroove / Funk": "tribal, funky, rolling drums (Altinbas, Electric Rescue)",
+        "Industrial Techno": "machine/industrial/EBM-leaning techno",
+        "Neo-Trance / Trance-Techno": "trancey leads and pads over a techno spine (Peppe Amore, 747, Siimon)"
+      },
+      "tier3": ["Hypnotic Tool", "Dubwise / Deepchord", "Detroit / Deep", "Loopy / Warehouse", "Sci-Fi / Space", "Tribal Rollers", "Schranz / Hard", "303 Workout", "Tbilisi / Eastern", "Analogue / Modular Jam", "Breakbeat Techno", "Romanian Minimal", "Peak-Time Rave", "Planetary / Cosmic", "Nocturnal / Afterhours"]
+    },
+    {
+      "tier1": "House",
+      "from": ["House", "Deep House", "Tech House", "Minimal / Deep Tech", "Melodic House & Techno"],
+      "tier2": {
+        "Deep House": "warm, deep, classic house (Timboletti, Borrowed Identity, Landhouse)",
+        "Tech House": "functional tech house (Aziz Konkrite, Abraxsophia, Hakim)",
+        "Minimal / Deep Tech": "minimal house/techno (Villalobos, Mathew Jonson)",
+        "Melodic House & Techno": "melodic club house (Stephan Bodzin, Oliver Koletzki, UNDERHER)",
+        "Afro / Oriental House": "Arabic/oriental or African-leaning club house (Acid Arab, KasbaH, Shkoon, Rust, Santi & Tuğçe)",
+        "Disco House": "disco-sampling house",
+        "Soulful / Vocal House": "vocals and soul (Nowadays, Rhythm Section)",
+        "Acid House": "303 house",
+        "Progressive House": "long-form progressive house",
+        "Lo-Fi / Raw House": "dusty, raw, low-slung house"
+      },
+      "tier3": ["Romanian Minimal", "Lo-Fi / Dusty", "Vocal Deep", "Piano House", "Oriental Grooves", "Afro Percussive", "Garage Swing", "Acid Trax", "Sunrise / Melodic", "Disco Loop / Edit"]
+    },
+    {
+      "tier1": "Trance & Psy",
+      "from": ["Psy-Trance", "Trance"],
+      "tier2": {
+        "Progressive Psy-Trance": "progressive psy (Hypnagog, Perfect Stranger, Iboga, Dekel)",
+        "Full-On Psy-Trance": "full-on psy (Nano, HOM-Mega, Humanoids, Gorovich)",
+        "Forest / Dark Psy": "forest/dark psychedelic",
+        "Goa / Neo-Goa": "goa and neo-goa",
+        "Uplifting / Melodic Trance": "uplifting/melodic trance",
+        "Hard Trance": "hard trance",
+        "Neo-Trance / Trance-Techno": "modern trance-techno crossover (Peppe Amore, X-Trance)",
+        "Psybient / Psychill": "downtempo psychedelic"
+      },
+      "tier3": ["Psychedelic Roller", "Twisted / Acid Psy", "Morning Full-On", "Night Psy", "Neo-Goa Revival", "Prog Melodic", "Hard / Industrial Trance", "Psybreaks"]
+    },
+    {
+      "tier1": "Bass & Breaks",
+      "from": ["Breakbeat / Bass", "Drum & Bass", "Acid Core"],
+      "tier2": {
+        "Breakbeat / Breaks": "breakbeat, electro-breaks (Guy Contact, Djrum breaks)",
+        "UK Bass / Dubstep": "dubstep and UK bass weight (Coloursound, Maara)",
+        "Jungle / Drum & Bass": "jungle, DnB (Djrum, SHERELLE, En:Vy)",
+        "Acidcore / Hardtek": "acidcore, hardtek, free-party tek (VELCRO, Choko)",
+        "Garage / Bassline": "UKG/bassline",
+        "Club / Bass House": "club bass house"
+      },
+      "tier3": ["UK Funky", "Dubstep Weight", "Jungle Rollers", "Neuro / Techy", "Hardtek / Free Party", "2-Step / Garage", "Bassline / Niche", "Turbo / Rave Bass"]
+    },
+    {
+      "tier1": "Electro & Wave",
+      "from": ["Electro", "Darkwave / Post-Punk"],
+      "tier2": {
+        "Electro": "electro, electro-funk (Kraftwerk, DJ Mehdi, Reflex Blue, Il Est Vilaine)",
+        "Acid Electro": "acid electro",
+        "EBM / Synth-Pop": "EBM and synth-pop",
+        "Darkwave / Cold Wave": "darkwave, cold wave (Selofan, Agent Side Grinder, Молчат Дома)",
+        "Post-Punk / New Wave": "post-punk, new wave",
+        "Italo / Cosmic Disco": "italo, cosmic disco"
+      },
+      "tier3": ["Detroit Electro", "Acid Trax", "EBM Body Music", "Cold Wave / Minimal", "Italo", "Cosmic / Balearic"]
+    },
+    {
+      "tier1": "Downtempo",
+      "from": ["Downtempo / Trip-Hop"],
+      "tier2": {
+        "Organic House / Slow Disco": "organic house, slow disco (Kerala Dust, Be Svendsen, islandman)",
+        "Trip-Hop / Beats": "trip-hop and beatdown",
+        "Balearic / Chill-Out": "balearic, chill-out",
+        "Dub / Ambient Dub": "dub and ambient dub",
+        "Psybient / Psychill": "psychedelic downtempo",
+        "Slow Techno / Midtempo": "slow techno, midtempo club"
+      },
+      "tier3": ["Organic / Ethno House", "Beatdown", "Dubwise", "Turkish / Oriental Downtempo", "Nu-Jazz / Downbeat", "Midtempo Club"]
+    },
+    {
+      "tier1": "Ambient & Experimental",
+      "from": ["Ambient / Experimental"],
+      "tier2": {
+        "Ambient": "ambient (Tangerine Dream, Marina Herlop, Reflections)",
+        "Drone / Deep Listening": "drone, deep listening (Coil, Tangerine Dream)",
+        "Experimental / Avant-Garde": "experimental, avant-garde (Muslimgauze, Kangding Ray)",
+        "Modern Classical / Minimalism": "modern classical, minimalism",
+        "Industrial / Noise": "industrial, noise, ritual",
+        "Field Recording / Soundscape": "field recording, soundscape",
+        "Psychedelic / Kosmische": "kosmische, psychedelic electronics",
+        "Electroacoustic / Musique Concrète": "electroacoustic, musique concrète"
+      },
+      "tier3": ["Ambient Tool", "Kosmische / Berlin School", "Industrial Ritual", "Musique Concrète", "Tape / Lo-Fi Ambient", "Sacred / Ritual", "Neo-Classical", "Sound Art / Spoken"]
+    },
+    {
+      "tier1": "Disco & Funk",
+      "from": ["Disco / Funk / Soul"],
+      "tier2": {
+        "Disco": "classic disco",
+        "Funk / Afrobeat": "funk, afrobeat (PMEDIA, Side Up Works)",
+        "Nu-Disco / Edits": "nu-disco, edits, reworks",
+        "Boogie / Rare Groove": "boogie, rare groove",
+        "Indian Disco / Bollywood": "Indian disco, Bollywood (Charanjit Singh)"
+      },
+      "tier3": ["Classic Disco", "Afro Funk", "Boogie", "Edit / Rework", "Soulful Groove"]
+    },
+    {
+      "tier1": "Jazz & Soul",
+      "from": ["Jazz"],
+      "tier2": {
+        "Jazz": "jazz (Glass Beams, Nesrine)",
+        "Spiritual / Modal Jazz": "spiritual, modal jazz",
+        "Ethio-Jazz": "Ethiopian jazz (Mulatu Astatke)",
+        "Soul / R&B": "soul, R&B",
+        "Fusion / Groove": "fusion, groove (Tomorrow Comes The Harvest)"
+      },
+      "tier3": ["Modal / Bop", "Ethio / African Jazz", "Nu-Jazz", "Afro-Cuban", "French Jazz"]
+    },
+    {
+      "tier1": "Hip Hop",
+      "from": ["Hip Hop"],
+      "tier2": {
+        "Boom Bap / Conscious": "boom bap, conscious (Kendrick Lamar, Shabazz Palaces)",
+        "Instrumental Hip Hop": "instrumental hip hop (Madlib, Nujabes)",
+        "Trap / Rap": "trap, rap",
+        "Abstract / Experimental Hip Hop": "abstract, experimental (Death Grips)",
+        "Neo-Soul / R&B": "neo-soul, R&B"
+      },
+      "tier3": ["Beat Tape", "Dusty Samples", "French Rap", "Trap Soul", "Conscious / Political"]
+    },
+    {
+      "tier1": "Rock & Psych",
+      "from": ["Rock"],
+      "tier2": {
+        "Psychedelic Rock": "psychedelic rock",
+        "Anatolian / Turkish Psych": "Anatolian psych, Turkish folk-rock (Derya Yıldırım, Baba Zula, Altın Gün)",
+        "Krautrock / Kosmische": "krautrock, kosmische rock (Om)",
+        "Indie / Alternative": "indie, alternative",
+        "Metal / Heavy": "metal, heavy rock (Bathory, Obsequiae, System of a Down)",
+        "Punk / Hardcore": "punk, hardcore",
+        "Stoner / Desert Rock": "stoner, desert rock",
+        "Rock'n'Roll / Garage": "rock'n'roll, garage (Aguaturbia)"
+      },
+      "tier3": ["70s Anatolian", "Turkish Psych Revival", "Psychedelic / Garage", "Desert / Stoner", "Latin Psych", "Black / Extreme Metal", "Alt / Nu Metal"]
+    },
+    {
+      "tier1": "Pop & Chanson",
+      "from": ["Pop"],
+      "tier2": {
+        "Pop": "pop (Stromae, Aili)",
+        "French Chanson": "French chanson (Claude François)",
+        "Synth-Pop": "synth-pop (Bronski Beat)",
+        "World-Pop / Fusion": "world-pop, fusion",
+        "Electro-Pop / Indie Pop": "electro-pop, indie pop"
+      },
+      "tier3": ["Bedroom Pop", "World Pop", "Cover / Standard", "Eurodance", "Yé-Yé / Sixties"]
+    },
+    {
+      "tier1": "World",
+      "from": ["World"],
+      "tier2": {
+        "Maghreb & Mashriq": "North Africa and Arabic east (Bachar Mar-Khalifé, Maryam Saleh, Rai, chaabi, mahraganat)",
+        "Anatolia & Levant": "Turkey, Levant, Armenian (Hayk Karoyi)",
+        "Balkan": "Balkans (Staro Selo)",
+        "Caucasus & Armenia": "Caucasus, Georgia, Armenia",
+        "Iran & Central Asia": "Iran, Uzbekistan, Tajikistan (Mohammad Reza Mortazavi, Josef Tumari)",
+        "Sub-Saharan Africa": "West/East/Southern Africa (Ajabu!, Kindred Spirits)",
+        "South Asia": "India, Pakistan, Bangladesh",
+        "Latin America": "Latin America (Cemento Atlantico)",
+        "Caribbean": "Caribbean",
+        "Mediterranean & Greek": "Greek, Mediterranean",
+        "Oriental Club / Fusion": "oriental/global club fusion, Arabic electronic",
+        "East Asia": "East Asia"
+      },
+      "tier3": ["Raï", "Chaabi", "Gnawa", "Mahraganat", "Sufi / Trance", "Levantine Indie", "Armenian", "Georgian", "Persian Classical", "Central Asian", "Balkan Brass", "Lautareasca / Manele", "Sevdalinka", "Greek / Rebetiko", "West African", "Ethiopian", "Maghrebi Fusion", "Latin / Cumbia", "Andean", "Brazilian", "Indian Classical", "Qawwali", "Turkish Pop", "Oriental Club"]
+    },
+    {
+      "tier1": "Folk & Roots",
+      "from": ["Folk"],
+      "tier2": {
+        "Occitan & French Folk": "Occitan, Auvergnat, French regional (Cocanha, Super Parquet)",
+        "Mediterranean Polyphony": "Corsican, Sardinian, Cretan polyphony (Gidiki)",
+        "Balkan & Slava": "Balkan and Slavic folk",
+        "Anatolian & Middle Eastern Folk": "Anatolian and Middle Eastern roots",
+        "Celtic & Nordic": "Celtic, Nordic, Sámi",
+        "Drone / Weird Folk": "drone-folk, weird folk (La Tène)",
+        "Sacred & Liturgical Folk": "sacred and liturgical roots",
+        "Central Asian / Sufi": "Central Asian and Sufi traditions"
+      },
+      "tier3": ["Vocal Polyphony", "Cabrette / Bal", "Drone / Bourdon", "Sung Epics", "Lament / Lullaby", "Work Song", "Sacred / Liturgical", "Ceilidh / Dance Tune", "Balkan Brass", "Anatolian Aşık", "Corsican / Sardinian", "Occitan / Auvergnat", "Breton", "Sámi / Nordic"]
+    },
+    {
+      "tier1": "Classical & Sacred",
+      "from": ["Classical"],
+      "tier2": {
+        "Modern Classical / Minimalism": "modern classical, minimalism (Philip Glass)",
+        "Medieval / Early Music": "medieval, early music (Hildegard von Bingen, Anonyme c.1200)",
+        "Choral / Liturgical": "choral, liturgical (Seraphim Bit-Kharibi)",
+        "Solo Piano / Instrumental": "solo piano, instrumental (Lorien Testard)"
+      },
+      "tier3": ["Minimalism", "Renaissance / Medieval", "Chant / Liturgical", "Solo Piano", "String Quartet", "Organ", "Choral Modern"]
+    }
+  ]
+}
