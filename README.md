@@ -52,13 +52,14 @@ Every write path refuses to run while rekordbox is open, takes `backup_pre_<chan
 
 ## Using the skill
 
-The skill lives in `skills/music-tagger/` and is discovered from this repository the same way any project skill is; on another machine, symlink it into the global directory:
+`skills/music-tagger/SKILL.md` is a standard agent skill: a `name`, a model-facing `description` carrying its trigger branches, and reference files behind it. Point your harness at the directory, or symlink it into the global skills directory:
 
 ```bash
+# add to your harness's custom skills directories, or:
 ln -s "$PWD/skills/music-tagger" ~/.agents/skills/music-tagger
 ```
 
-Agent asks that should reach it: "tag my rekordbox library", "my genres are a mess / full of World", "add a genre hierarchy", "why is this playlist empty after you tagged things".
+It is model-invoked, so no typing is needed. Prompts that should reach it: "tag my rekordbox library", "my genres are a mess, they're all World", "add a genre hierarchy to my tracks", "why is this playlist empty after you tagged things".
 
 ## Tests
 
@@ -67,3 +68,7 @@ python3 -m unittest discover -s tests
 ```
 
 They cover what decides the write: numeric id generation, the signed-32-bit encoding smart playlists use for ids, taxonomy validation (double-mapped genres, tier-3 names shadowing tier-2, family names mapping to themselves so re-runs work), verdict validation, and the normalisation the applier applies (album majority, proposal merging, family moves). No library needed.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
