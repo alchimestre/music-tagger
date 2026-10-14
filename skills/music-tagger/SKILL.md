@@ -30,7 +30,7 @@ Adapt `taxonomy.json` to this library. Tier 1 is the general layer, so a value t
 Rules that the applier enforces:
 
 - every existing genre value maps to exactly one tier-1 family (the `from` lists);
-- a tier-2 name is unique across the whole column, likewise tier-3, and no tier-3 name repeats a tier-2 name — the names are global because the columns are flat;
+- the two columns are flat, so a name means one thing across the whole column; the same name may sit in two families' menus, and a tier-3 name never repeats a tier-2 name inside one family;
 - names stay in the library's language and casing style, 2-4 words, Title Case;
 - a tier-2 entry may name its exemplar artists or labels in its description: that steers the classifiers far better than an abstract definition.
 
@@ -68,4 +68,4 @@ The agent cannot photograph the app: DB-level checks plus a human glance at the 
 - `reference/database.md` — schema notes, insert templates, write order, orphan cleanup, backup layout, guarded fields.
 - `reference/smartlists.md` — smart playlist XML, the operator/property vocabulary, how tag conditions encode, escaping.
 - `reference/delegation.md` — slice and verdict schemas, subagent task template, normalisation rules.
-- `taxonomy.json` — the shipped vocabulary: 15 families, 105 subgenres, ~130 niche candidates.
+- `taxonomy.json` — the shipped vocabulary: 15 families, 106 subgenre candidates, 133 niche candidates.
