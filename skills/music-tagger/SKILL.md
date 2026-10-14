@@ -5,7 +5,7 @@ description: Tagging a rekordbox library — build a tiered genre typology, clas
 
 # music-tagger
 
-Turn a library whose genre field is flat, half-empty or full of catch-alls into a **typology**:
+Turn a library whose genre field is flat, half-empty or full of catch-alls into a typology:
 
 | Tier | Lives in | Cardinality | Example |
 |---|---|---|---|
@@ -13,7 +13,7 @@ Turn a library whose genre field is flat, half-empty or full of catch-alls into 
 | 2 — subgenre | My Tag column `Subgenre` | one per track | `Raw / Deep / Hypnotic`, `Maghreb & Mashriq` |
 | 3 — niche | My Tag column `Niche` | zero or one | `Hypnotic Tool`, `Raï` |
 
-Two or three tags per track, every one of them filterable. The design goal is to kill **blobs**: a tier-1 family that swallows distinct musics. `World` at 251 tracks is fine as tier 1 *if* tier 2 and tier 3 split it into `Maghreb & Mashriq` / `Raï`, `Sub-Saharan Africa` / `Tuareg Desert Blues`, and so on. A blob is a family that is the *only* level.
+Two or three tags per track, every one of them filterable. The design goal is to kill blobs: a tier-1 family that swallows distinct musics. `World` at 251 tracks is fine as tier 1 *if* tier 2 and tier 3 split it into `Maghreb & Mashriq` / `Raï`, `Sub-Saharan Africa` / `Tuareg Desert Blues`, and so on. A blob is a family that is the *only* level.
 
 Work the five steps in order. `scripts/rbtag.py --help` lists the commands; `taxonomy.json` ships a vocabulary built against a real 1,551-track library as the starting point, not a default to keep.
 
@@ -38,7 +38,7 @@ Completion: the coverage assertion passes (the survey's genre list is fully mapp
 
 ## 3. Classify
 
-One **verdict** per track: `tier1`, `tier2`, `tier3` (nullable), `confidence`, `why` (≤80 chars, the reason, citing the evidence).
+One verdict per track: `tier1`, `tier2`, `tier3` (nullable), `confidence`, `why` (≤80 chars, the reason, citing the evidence).
 
 Evidence per track: artist, album, label, year, BPM, the *original* file tag string, path, plus any research notes from earlier rounds. Where the evidence decides mechanically, decide mechanically. Where it needs judgement, slice by family and delegate — one family per slice keeps the menu small and the answers coherent; `reference/delegation.md` holds the slice format, the subagent task template and the verdict schema.
 
@@ -52,7 +52,7 @@ Completion: every live track id has exactly one verdict, all names validate agai
 
 `rbtag.py apply --taxonomy taxonomy.json --verdicts out/` — dry run by default; `--apply` writes.
 
-The script stops nothing: **quit rekordbox first** and say so, because the app rewrites `master.db` from memory on exit. It then takes the backup, rebuilds the two My Tag columns, inserts the tag links, remaps the `Genre` field to the tier-1 families, drops genre rows left unreferenced, patches smart playlists that filter a renamed genre name, and writes the per-track audit CSV next to the backups.
+The script stops nothing: quit rekordbox first and say so, because the app rewrites `master.db` from memory on exit. It then takes the backup, rebuilds the two My Tag columns, inserts the tag links, remaps the `Genre` field to the tier-1 families, drops genre rows left unreferenced, patches smart playlists that filter a renamed genre name, and writes the per-track audit CSV next to the backups.
 
 Completion: the post-write checks report the expected counts, tags-per-track 2-3, one tag per column, and zero dangling references.
 
@@ -64,7 +64,7 @@ The agent cannot photograph the app: DB-level checks plus a human glance at the 
 
 ## Reference
 
-- **Primary keys.** `djmdContent`, `djmdArtist`, `djmdAlbum`, `djmdLabel`, `djmdGenre`, `djmdPlaylist`, `djmdMyTag` are entities and take numeric keys (random uint32, like rekordbox's own). `djmdSongPlaylist` and `djmdSongMyTag` are link tables and take UUID strings. A UUID-keyed entity row reads back perfectly through SQL while the app shows a blank field for it — blank genres on a subset of tracks, tags that never appear — so write numeric keys from the start, and reach for `rbtag.py rekey` when one slips through.
+- Primary keys: `djmdContent`, `djmdArtist`, `djmdAlbum`, `djmdLabel`, `djmdGenre`, `djmdPlaylist`, `djmdMyTag` are entities and take numeric keys (random uint32, like rekordbox's own). `djmdSongPlaylist` and `djmdSongMyTag` are link tables and take UUID strings. A UUID-keyed entity row reads back perfectly through SQL while the app shows a blank field for it — blank genres on a subset of tracks, tags that never appear — so write numeric keys from the start, and reach for `rbtag.py rekey` when one slips through.
 - `reference/database.md` — schema notes, insert templates, write order, orphan cleanup, backup layout, guarded fields.
 - `reference/smartlists.md` — smart playlist XML, the operator/property vocabulary, how tag conditions encode, escaping.
 - `reference/delegation.md` — slice and verdict schemas, subagent task template, normalisation rules.

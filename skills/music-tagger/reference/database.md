@@ -4,7 +4,7 @@
 
 - macOS library: `~/Library/Pioneer/rekordbox/master.db`; the app also keeps `master.backup.*.db` files and its own `backup/` folders.
 - The file is SQLCipher-encrypted. `sqlite3 master.db` answers `file is not a database`; open it with pyrekordbox (`pyrekordbox.Rekordbox6Database()`), which resolves the key, and run SQL through `db.engine.connect()`.
-- Reading while rekordbox runs is safe. **Writing requires the app to be quit**: it holds the library in memory and rewrites `master.db` on exit, and pyrekordbox's own `commit()` refuses while the process is alive. Quitting someone's running app is a visible side effect — say when you are about to do it.
+- Reading while rekordbox runs is safe. Writing requires the app to be quit: it holds the library in memory and rewrites `master.db` on exit, and pyrekordbox's own `commit()` refuses while the process is alive. Quitting someone's running app is a visible side effect — say when you are about to do it.
 - Units: `djmdContent.BPM` is stored as an integer ×100 (128 BPM = `12800`); `Length` is milliseconds.
 
 ## Primary keys
