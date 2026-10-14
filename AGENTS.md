@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Working on this repository means working on a tool that rewrites a live DJ library. Two rules dominate everything else.
+This repository's tool rewrites a live DJ library in place.
 
 ## Before touching a library
 
