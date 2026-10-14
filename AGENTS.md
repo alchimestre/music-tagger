@@ -11,7 +11,7 @@ This repository's tool rewrites a live DJ library in place.
 
 ## Repo conventions
 
-- `skills/music-tagger/taxonomy.json` is data, not code: vocabulary changes are edits to that file, and the script validates the shape (unique names across a column, no tier-3 name repeating a tier-2 name, every genre mapped once).
+- `skills/music-tagger/taxonomy.json` is data, not code: vocabulary changes are edits to that file, and the script validates the shape (every genre mapped once, no family mapped into another, no tier-3 name repeating a tier-2 name inside a family).
 - Entity tables take numeric primary keys, link tables take UUIDs; `reference/database.md` explains why the app renders UUID-keyed entity rows as blank fields, and `rbtag.py rekey` repairs them.
 - Keep `reference/` and `scripts/` in sync: a change to how the applier behaves belongs in `reference/database.md` in the same change, and the smart playlist encoding in `reference/smartlists.md` must match `rbtag.py`.
 - Verification is DB-level plus a human glance — there is no way to screenshot the app. Report which specific thing the human should look at, and never claim a visible result you did not see confirmed.
