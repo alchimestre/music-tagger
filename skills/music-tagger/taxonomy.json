@@ -9,9 +9,10 @@
   "groups": [
     {
       "tier1": "Techno",
-      "from": ["Techno", "Techno (Raw / Deep / Hypnotic)", "Hard Techno"],
+      "from": ["Techno", "Techno (Raw / Deep / Hypnotic)", "Hard Techno", "Deep Techno"],
       "tier2": {
-        "Raw / Deep / Hypnotic": "loopy, deep, hypnotic club techno (Hypnus, WSNWG, Tome, UFO95, Polygonia, Mathys Lenne)",
+        "Raw / Deep / Hypnotic": "loopy, hypnotic club techno (Tome, UFO95, Mathys Lenne)",
+        "Deep Techno": "deep, spacious, dub-tinged techno (Hypnus, WSNWG, Polygonia, Deepbass, Téo Dréan)",
         "Peak Time / Driving": "driving big-room techno (Robert Hood, Planetary Assault Systems, Fuse Imprint, Tresor)",
         "Hard Techno": "fast, distorted, hard (Lask, Indira Paganotto, Vortek's, Odiom, Undergroundtekno)",
         "Melodic Techno": "melodic/melancholic arps and pads, techno-leaning",

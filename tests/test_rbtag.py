@@ -263,3 +263,20 @@ class TestLastfmTags(unittest.TestCase):
             cache = rbtag.load_cache(path)
             self.assertIn("a", cache["artists"])
             self.assertEqual(cache["tracks"], {})
+
+    def test_family_groups_keeps_unmapped_genres(self):
+        tax = {"from": {"Techno": "Techno"}, "groups": [],
+               "menu": {"Techno": {"tier2": {"A": "a"}, "tier3": ["B"]}}}
+        tracks = {"1": {"genre": "Techno"}, "2": {"genre": "Junk"}}
+        groups = rbtag.family_groups(tracks, tax)
+        self.assertEqual(len(groups["Techno"]), 1)
+        self.assertEqual(len(groups["Unmapped"]), 1)
+
+    def test_unmapped_slice_menu_is_the_union(self):
+        tax = {"from": {}, "menu": {}, "groups": [
+            {"tier2": {"A": "a"}, "tier3": ["B"]},
+            {"tier2": {"C": "c"}, "tier3": ["D"]},
+        ]}
+        menu, tier3 = rbtag.slice_menu(tax, rbtag.UNMAPPED)
+        self.assertEqual(set(menu), {"A", "C"})
+        self.assertEqual(set(tier3), {"B", "D"})
