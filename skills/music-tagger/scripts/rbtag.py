@@ -3,6 +3,7 @@
 
     rbtag.py survey
     rbtag.py dump      --out tracks.json [--notes audit.csv ...]
+    rbtag.py tags      --tracks tracks.json --out tracks.tags.json
     rbtag.py slices    --taxonomy taxonomy.json --tracks tracks.json --outdir slices [--max-per-slice 130]
     rbtag.py apply     --taxonomy taxonomy.json --verdicts out [--audit-dir DIR] [--apply]
     rbtag.py verify
@@ -19,10 +20,15 @@ import argparse
 import csv
 import glob
 import json
+import os
 import random
 import shutil
 import subprocess
 import sys
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
 import uuid
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
@@ -31,6 +37,8 @@ from pathlib import Path
 LIBDIR = Path.home() / "Library/Pioneer/rekordbox"
 COLUMNS = ("Subgenre", "Niche")
 UTF = "%Y-%m-%d %H:%M:%S.%f"
+LASTFM_API = "https://ws.audioscrobbler.com/2.0/"
+LASTFM_RETRY_STATUS = frozenset({429, 500, 502, 503, 504})
 
 
 # --------------------------------------------------------------------------- pure helpers
@@ -55,6 +63,87 @@ def left_bitshift(x: int, nbit: int = 32) -> int:
 
 def right_bitshift(x: int, nbit: int = 32) -> int:
     return int(x + 2 ** nbit)
+
+
+def lastfm_key(name: str) -> str:
+    return " ".join(name.split()).casefold()
+
+
+def parse_top_tags(payload: dict, limit: int = 10) -> list[dict]:
+    """Tags from artist.gettoptags, strongest first; an unknown artist is empty."""
+    toptags = payload.get("toptags") or {}
+    tags = toptags.get("tag") or []
+    if isinstance(tags, dict):
+        tags = [tags]
+    scored = []
+    for item in tags:
+        name = (item.get("name") or "").strip()
+        if name:
+            scored.append({"name": name, "count": int(item.get("count") or 0)})
+    scored.sort(key=lambda tag: (-tag["count"], tag["name"].casefold()))
+    return scored[:limit]
+
+
+def track_key(artist: str, title: str) -> str:
+    return f"{lastfm_key(artist)}\t{lastfm_key(title)}"
+
+
+def attach_tags(tracks: dict, cache: dict, with_track_tags: bool = False) -> int:
+    """Copy cached artist tags onto each track; return how many tracks got any."""
+    entries = cache.get("artists", {})
+    track_entries = cache.get("tracks", {})
+    tagged = 0
+    for track in tracks.values():
+        entry = entries.get(lastfm_key(track.get("artist") or ""))
+        payload = (
+            {"artist": entry.get("artist", ""), "tags": entry.get("tags", [])}
+            if entry else {"artist": "", "tags": []}
+        )
+        if with_track_tags:
+            track_entry = track_entries.get(
+                track_key(track.get("artist") or "", track.get("title") or "")
+            )
+            payload["track"] = (
+                {"artist": track_entry.get("artist", ""), "title": track_entry.get("title", ""),
+                 "tags": track_entry.get("tags", [])}
+                if track_entry else {"artist": "", "title": "", "tags": []}
+            )
+        track["lastfm"] = payload
+        tagged += bool(entry and entry.get("tags"))
+    return tagged
+
+
+def dotenv_value(path: Path, key: str) -> str | None:
+    try:
+        lines = path.read_text().splitlines()
+    except OSError:
+        return None
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        name, value = line.split("=", 1)
+        if name.strip() == key:
+            return value.strip().strip('"').strip("'")
+    return None
+
+
+def load_cache(path: Path) -> dict:
+    try:
+        data = json.loads(path.read_text())
+    except (OSError, ValueError):
+        return {"artists": {}, "tracks": {}}
+    artists = data.get("artists") if isinstance(data, dict) else None
+    tracks = data.get("tracks") if isinstance(data, dict) else None
+    return {"artists": artists if isinstance(artists, dict) else {},
+            "tracks": tracks if isinstance(tracks, dict) else {}}
+
+
+def save_cache(path: Path, cache: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(json.dumps(cache, ensure_ascii=False, indent=1))
+    tmp.replace(path)
 
 
 def load_taxonomy(path) -> dict:
@@ -277,6 +366,123 @@ def cmd_dump(args):
     print(f"{len(tracks)} tracks -> {args.out} "
           f"(with original tag strings: {sum(1 for t in tracks.values() if t['orig'])}, "
           f"with research notes: {sum(1 for t in tracks.values() if t['note'])} )")
+
+
+class LastfmError(RuntimeError):
+    pass
+
+
+def _lastfm_json(url: str, timeout: int, retries: int) -> dict:
+    last = None
+    for attempt in range(retries):
+        request = urllib.request.Request(url, headers={"User-Agent": "music-tagger/0.1"})
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                return json.loads(response.read().decode("utf-8", "replace"))
+        except urllib.error.HTTPError as error:
+            last = f"HTTP {error.code}"
+            if error.code not in LASTFM_RETRY_STATUS:
+                raise LastfmError(f"last.fm: {last}") from error
+        except (urllib.error.URLError, TimeoutError, ValueError) as error:
+            last = str(error)
+        if attempt < retries - 1:
+            time.sleep(2 ** attempt)
+    raise LastfmError(f"last.fm: gave up after {retries} attempts: {last}")
+
+
+def fetch_artist_tags(api_key: str, artist: str, limit: int = 10,
+                      timeout: int = 20, retries: int = 3) -> tuple[str, list[dict]]:
+    params = urllib.parse.urlencode({
+        "method": "artist.gettoptags", "artist": artist, "api_key": api_key,
+        "format": "json", "autocorrect": "1",
+    })
+    payload = _lastfm_json(f"{LASTFM_API}?{params}", timeout, retries)
+    if payload.get("error") == 6:
+        return artist, []
+    if payload.get("error"):
+        raise LastfmError(f"last.fm {payload['error']}: {payload.get('message', '')}")
+    resolved = ((payload.get("toptags") or {}).get("artist") or artist).strip()
+    return resolved, parse_top_tags(payload, limit)
+
+
+def fetch_track_tags(api_key: str, artist: str, title: str, limit: int = 10,
+                     timeout: int = 20, retries: int = 3) -> tuple[str, str, list[dict]]:
+    params = urllib.parse.urlencode({
+        "method": "track.gettoptags", "artist": artist, "track": title, "api_key": api_key,
+        "format": "json", "autocorrect": "1",
+    })
+    payload = _lastfm_json(f"{LASTFM_API}?{params}", timeout, retries)
+    if payload.get("error") == 6:
+        return artist, title, []
+    if payload.get("error"):
+        raise LastfmError(f"last.fm {payload['error']}: {payload.get('message', '')}")
+    attr = (payload.get("toptags") or {}).get("@attr") or {}
+    return ((attr.get("artist") or artist).strip(),
+            (attr.get("track") or title).strip(),
+            parse_top_tags(payload, limit))
+
+
+def cmd_tags(args):
+    api_key = os.environ.get("LASTFM_API_KEY") or dotenv_value(Path(".env"), "LASTFM_API_KEY")
+    if not api_key:
+        sys.exit("set LASTFM_API_KEY in the environment or .env before fetching tags")
+    if args.rate <= 0:
+        sys.exit("--rate must be positive")
+    with open(args.tracks) as fh:
+        tracks = json.load(fh)
+    cache_path = Path(args.cache) if args.cache else Path(args.tracks).parent / "lastfm_cache.json"
+    cache = load_cache(cache_path)
+
+    artists = {}
+    track_rows = {}
+    for track in tracks.values():
+        name = (track.get("artist") or "").strip()
+        if name:
+            artists.setdefault(lastfm_key(name), name)
+        title = (track.get("title") or "").strip()
+        if args.track_tags and name and title:
+            track_rows.setdefault(track_key(name, title), (name, title))
+
+    artist_todo = [key for key in artists if args.refresh or key not in cache["artists"]]
+    track_todo = [key for key in track_rows if args.refresh or key not in cache["tracks"]]
+    print(f"{len(tracks)} tracks | {len(artists)} artists ({len(artist_todo)} to fetch) | "
+          f"{len(track_rows)} tracks ({len(track_todo)} to fetch) | {cache_path}")
+
+    total = len(artist_todo) + len(track_todo)
+    calls = 0
+
+    def step():
+        nonlocal calls
+        calls += 1
+        if calls % 25 == 0 or calls == total:
+            print(f"  {calls}/{total}", flush=True)
+        if calls < total:
+            time.sleep(1 / args.rate)
+
+    for key in artist_todo:
+        resolved, tags = fetch_artist_tags(api_key, artists[key], args.top, args.timeout, args.retries)
+        cache["artists"][key] = {"artist": resolved, "tags": tags, "fetched": stamp()}
+        step()
+    for key in track_todo:
+        artist, title = track_rows[key]
+        resolved_artist, resolved_title, tags = fetch_track_tags(
+            api_key, artist, title, args.top, args.timeout, args.retries
+        )
+        cache["tracks"][key] = {"artist": resolved_artist, "title": resolved_title,
+                                "tags": tags, "fetched": stamp()}
+        step()
+
+    save_cache(cache_path, cache)
+    tagged = attach_tags(tracks, cache, args.track_tags)
+    with_tags = sum(1 for entry in cache["artists"].values() if entry.get("tags"))
+    line = (f"{tagged}/{len(tracks)} tracks carry artist tags; "
+            f"{with_tags}/{len(cache['artists'])} artists have any")
+    if args.track_tags:
+        track_with = sum(1 for key in track_rows if cache["tracks"].get(key, {}).get("tags"))
+        line += f"; {track_with}/{len(track_rows)} tracks have track tags"
+    with open(args.out, "w", encoding="utf-8") as fh:
+        json.dump(tracks, fh, ensure_ascii=False)
+    print(f"{line} -> {args.out}")
 
 
 def cmd_slices(args):
@@ -612,6 +818,19 @@ def main(argv=None):
     d.add_argument("--out", required=True)
     d.add_argument("--notes", nargs="*", default=[], help="audit CSVs carrying id + old_genre/reason/evidence")
     d.set_defaults(func=cmd_dump)
+
+    t = sub.add_parser("tags", help="fetch Last.fm artist tags into the evidence corpus")
+    t.add_argument("--tracks", required=True)
+    t.add_argument("--out", required=True)
+    t.add_argument("--cache", help="tag cache path (default: lastfm_cache.json beside --tracks)")
+    t.add_argument("--track-tags", action="store_true",
+                   help="also fetch track.gettoptags, one call per distinct track")
+    t.add_argument("--top", type=int, default=10)
+    t.add_argument("--rate", type=float, default=4.0, help="requests per second (default: 4)")
+    t.add_argument("--timeout", type=int, default=20)
+    t.add_argument("--retries", type=int, default=3)
+    t.add_argument("--refresh", action="store_true", help="ignore cached artists")
+    t.set_defaults(func=cmd_tags)
 
     s = sub.add_parser("slices", help="build per-family work files for classifiers")
     s.add_argument("--taxonomy", required=True)

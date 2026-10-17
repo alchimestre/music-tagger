@@ -15,10 +15,13 @@ Judgement per track does not scale in one head: 1,551 tracks × (subgenre, niche
  "tier3_menu": ["Hypnotic Tool", "Dubwise / Deepchord", "..."],
  "tracks": [{"id": "...", "title": "...", "artist": "...", "album": "...", "label": "...",
              "year": 2017, "bpm": 128.0, "genre": "Techno", "orig": "Techno",
-             "path": "/Users/.../file.aiff", "note": "prior research evidence, <=300 chars"}]}
+             "path": ".../file.aiff", "note": "prior research evidence, <=300 chars",
+             "lastfm": {"artist": "...", "tags": [{"name": "techno", "count": 100}],
+                        "track": {"artist": "...", "title": "...",
+                                  "tags": [{"name": "chillout", "count": 70}]}}}]}
 ```
 
-`orig` is the track's original file-tag genre (recover it from earlier audit CSVs before overwriting anything) and `note` is whatever earlier research rounds concluded about that release — label blurbs, Bandcamp tags, Discogs styles. Both are the strongest cheap evidence a classifier gets.
+`orig` is the track's original file-tag genre (recover it from earlier audit CSVs before overwriting anything) and `note` is whatever earlier research rounds concluded about that release — label blurbs, Bandcamp tags, prior notes. `lastfm.tags` is artist-level listener evidence fetched before slicing, strongest first. `lastfm.track.tags` is title-level and often empty; use it as a tiebreaker. Neither is a release genre: a label or release page outranks both.
 
 ## Task template
 
@@ -28,8 +31,8 @@ Shared context (rules that apply to every slice):
 > - `tier1` = the app's genre field, one of the listed families.
 > - `tier2` = My Tag column `Subgenre`, exactly one, verbatim from your slice's `tier2_menu`.
 > - `tier3` = My Tag column `Niche`, zero or one, from `tier3_menu`; target ~60-70% coverage, and a wrong niche is worse than none.
-> - Decide from the evidence in each track record. Same album ⇒ same verdict (note genuine outliers). Tier 1 defaults to your family; change it only when the track clearly belongs elsewhere, with the reason.
-> - At most 8 web searches for the whole slice, prefer reading the artist's Bandcamp or label page directly, never retry a failing search. Undecidable after that ⇒ best menu value, `confidence: low`.
+> - Decide from the evidence in each track record. Start with `lastfm.tags`, then `lastfm.track.tags`, then label, album and release pages. Same album ⇒ same verdict (note genuine outliers). Tier 1 defaults to your family; change it only when the track clearly belongs elsewhere, with the reason.
+> - At most 3 web searches for the whole slice. Decide from `lastfm.tags`, `lastfm.track.tags`, label, album and year first. Read the artist's Bandcamp or label page directly; never query MusicBrainz or Discogs; never retry a failing search. Undecidable after that ⇒ best menu value, `confidence: low`.
 > - If nothing in the menu fits a niche, use `"tier3": "PROPOSE: <Name>"`, 2-4 Title-Case words, sparingly — proposals are merged centrally.
 > - Sanity check: if more than half the slice lands in one tier2, re-examine; that usually means the evidence was ignored.
 > - Write `/…/out/<slice>.json` and reply with one line: slice, tier3 set/null counts, proposals, tier1 moves.
