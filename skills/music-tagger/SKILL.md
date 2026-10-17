@@ -40,9 +40,17 @@ Completion: the coverage assertion passes (the survey's genre list is fully mapp
 
 One verdict per track: `tier1`, `tier2`, `tier3` (nullable), `confidence`, `why` (≤80 chars, the reason, citing the evidence).
 
-Evidence per track: artist, album, label, year, BPM, the *original* file tag string, path, plus any research notes from earlier rounds. Where the evidence decides mechanically, decide mechanically. Where it needs judgement, slice by family and delegate — one family per slice keeps the menu small and the answers coherent; `reference/delegation.md` holds the slice format, the subagent task template and the verdict schema.
+Fetch artist tags once, before slicing:
 
-Evidence sources that answer these agents: MusicBrainz `ws/2`, the iTunes and Deezer search APIs, individual `*.bandcamp.com` subdomains, and Beatport release pages read through the `r.jina.ai` text proxy. Discogs, Bandcamp *search* and Resident Advisor answer 403/Cloudflare — pointing agents at them wastes a budget. Assign genre from the release, never from tempo alone.
+```bash
+scripts/rbtag.py tags --tracks work/tracks.json --out work/tracks.tags.json --track-tags
+```
+
+It calls `artist.gettoptags` once per distinct artist and `track.gettoptags` once per distinct artist and title, paced at four requests a second. Both are cached in `work/lastfm_cache.json`. It writes `lastfm.tags` and, with `--track-tags`, `lastfm.track.tags` onto every track. Use `work/tracks.tags.json` as the input to `slices`.
+
+Evidence per track: artist, album, label, year, BPM, the *original* file tag string, path, the artist's Last.fm tags, plus any research notes from earlier rounds. Where the evidence decides mechanically, decide mechanically. Where it needs judgement, slice by family and delegate — one family per slice keeps the menu small and the answers coherent; `reference/delegation.md` holds the slice format, the subagent task template and the verdict schema.
+
+Last.fm tags are artist-level listener evidence: strongest first, and noisy (places, moods, platforms). They do not replace the release. For release-level facts use the iTunes and Deezer search APIs, individual `*.bandcamp.com` subdomains, and Beatport pages through the `r.jina.ai` text proxy. MusicBrainz and Discogs are skipped: MB genre votes are sparse on the long tail and capped at one request per second, and Discogs blocks API requests. Assign genre from the release, never from tempo alone.
 
 Vocabulary discipline: tier 2 comes verbatim from the family menu; tier 3 only where it genuinely narrows the track (target 60-70% coverage); `PROPOSE: <Name>` when nothing fits, then merge near-duplicates centrally. Same release ⇒ same verdict; let album majority (≥60%) settle disagreement.
 

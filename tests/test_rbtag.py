@@ -175,3 +175,91 @@ class TestNormalisation(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestLastfmTags(unittest.TestCase):
+    def test_parse_top_tags_sorts_and_caps(self):
+        payload = {"toptags": {"tag": [
+            {"name": "techno", "count": "40"},
+            {"name": "Hardgroove", "count": "90"},
+            {"name": "acid", "count": "10"},
+        ]}}
+        tags = rbtag.parse_top_tags(payload, limit=2)
+        self.assertEqual([t["name"] for t in tags], ["Hardgroove", "techno"])
+        self.assertEqual(tags[0]["count"], 90)
+
+    def test_parse_top_tags_accepts_a_single_tag_object(self):
+        payload = {"toptags": {"tag": {"name": "ambient", "count": "100"}}}
+        self.assertEqual(rbtag.parse_top_tags(payload), [{"name": "ambient", "count": 100}])
+
+    def test_parse_top_tags_unknown_artist_is_empty(self):
+        self.assertEqual(rbtag.parse_top_tags({"error": 6, "message": "not found"}), [])
+
+    def test_attach_tags_matches_artist_case_and_spacing(self):
+        tracks = {
+            "1": {"artist": "  Bonobo "},
+            "2": {"artist": "Nobody"},
+        }
+        cache = {"artists": {
+            rbtag.lastfm_key("Bonobo"): {
+                "artist": "Bonobo", "tags": [{"name": "downtempo", "count": 100}],
+            },
+        }}
+        tagged = rbtag.attach_tags(tracks, cache)
+        self.assertEqual(tagged, 1)
+        self.assertEqual(tracks["1"]["lastfm"]["tags"][0]["name"], "downtempo")
+        self.assertEqual(tracks["2"]["lastfm"], {"artist": "", "tags": []})
+
+    def test_cache_round_trip_and_corruption(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "lastfm_cache.json"
+            self.assertEqual(rbtag.load_cache(path), {"artists": {}, "tracks": {}})
+            rbtag.save_cache(path, {"artists": {"a": {"artist": "A", "tags": []}}, "tracks": {}})
+            self.assertIn("a", rbtag.load_cache(path)["artists"])
+            path.write_text("{not json")
+            self.assertEqual(rbtag.load_cache(path), {"artists": {}, "tracks": {}})
+
+    def test_lastfm_key_collapses_whitespace(self):
+        self.assertEqual(rbtag.lastfm_key("  Frank   & Tony "), "frank & tony")
+
+    def test_dotenv_value_reads_quoted_and_ignores_comments(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / ".env"
+            path.write_text('# local\nOTHER=1\nLASTFM_API_KEY="abc123"\n')
+            self.assertEqual(rbtag.dotenv_value(path, "LASTFM_API_KEY"), "abc123")
+            self.assertIsNone(rbtag.dotenv_value(path, "MISSING"))
+            self.assertIsNone(rbtag.dotenv_value(Path(tmp) / "absent", "LASTFM_API_KEY"))
+
+    def test_track_key_normalises_both_sides(self):
+        self.assertEqual(rbtag.track_key(" Massive  Attack ", " Teardrop "),
+                         "massive attack\tteardrop")
+
+    def test_attach_tags_adds_track_tags_when_requested(self):
+        tracks = {
+            "1": {"artist": "Massive Attack", "title": "Teardrop"},
+            "2": {"artist": "Nobody", "title": "Nothing"},
+        }
+        cache = {
+            "artists": {rbtag.lastfm_key("Massive Attack"): {
+                "artist": "Massive Attack", "tags": [{"name": "trip-hop", "count": 100}]}},
+            "tracks": {rbtag.track_key("Massive Attack", "Teardrop"): {
+                "artist": "Massive Attack", "title": "Teardrop",
+                "tags": [{"name": "chillout", "count": 70}]}},
+        }
+        rbtag.attach_tags(tracks, cache, with_track_tags=True)
+        self.assertEqual(tracks["1"]["lastfm"]["track"]["tags"][0]["name"], "chillout")
+        self.assertEqual(tracks["2"]["lastfm"]["track"]["tags"], [])
+
+    def test_attach_tags_omits_track_tags_by_default(self):
+        tracks = {"1": {"artist": "Massive Attack", "title": "Teardrop"}}
+        cache = {"artists": {}, "tracks": {}}
+        rbtag.attach_tags(tracks, cache)
+        self.assertNotIn("track", tracks["1"]["lastfm"])
+
+    def test_load_cache_accepts_artist_only_shape(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "lastfm_cache.json"
+            path.write_text(json.dumps({"artists": {"a": {"artist": "A", "tags": []}}}))
+            cache = rbtag.load_cache(path)
+            self.assertIn("a", cache["artists"])
+            self.assertEqual(cache["tracks"], {})
