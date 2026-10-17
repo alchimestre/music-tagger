@@ -28,7 +28,7 @@ Judgement per track does not scale in one head: 1,551 tracks × (subgenre, niche
 Shared context (rules that apply to every slice):
 
 > Build the tier-2/tier-3 half of a three-tier genre typology.
-> - `tier1` = the app's genre field, one of the listed families.
+> - `tier1` = the app's genre field, one of the listed families. If your slice's `family` is `Unmapped`, choose it from the evidence and `tier1_vocabulary`; the menu is the union, so keep `tier2` inside the chosen family.
 > - `tier2` = My Tag column `Subgenre`, exactly one, verbatim from your slice's `tier2_menu`.
 > - `tier3` = My Tag column `Niche`, zero or one, from `tier3_menu`; target ~60-70% coverage, and a wrong niche is worse than none.
 > - Decide from the evidence in each track record. Start with `lastfm.tags`, then `lastfm.track.tags`, then label, album and release pages. Same album ⇒ same verdict (note genuine outliers). Tier 1 defaults to your family; change it only when the track clearly belongs elsewhere, with the reason.

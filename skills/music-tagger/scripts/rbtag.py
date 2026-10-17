@@ -175,8 +175,26 @@ def load_taxonomy(path) -> dict:
             "tier1": [g["tier1"] for g in groups], "tier2_all": t2_all, "tier3_all": t3_all}
 
 
+UNMAPPED = "Unmapped"
+
+
 def family_of(tracks: dict, tax: dict) -> dict:
     return {cid: tax["from"].get(t["genre"]) for cid, t in tracks.items()}
+
+
+def family_groups(tracks: dict, tax: dict) -> dict:
+    groups = defaultdict(list)
+    for track in tracks.values():
+        groups[tax["from"].get(track["genre"]) or UNMAPPED].append(track)
+    return groups
+
+
+def slice_menu(tax: dict, family: str) -> tuple[dict, list]:
+    if family == UNMAPPED:
+        return ({name: desc for g in tax["groups"] for name, desc in g["tier2"].items()},
+                [name for g in tax["groups"] for name in g["tier3"]])
+    group = tax["menu"][family]
+    return group["tier2"], group["tier3"]
 
 
 def validate_verdict(cid, r, track_family, tax) -> str:
@@ -246,9 +264,10 @@ def normalise_verdicts(verdicts: dict, tracks: dict, tax: dict, merges: dict = N
 
 def connect(db_path=None):
     import pyrekordbox
+    database = getattr(pyrekordbox, "MasterDatabase", None) or pyrekordbox.Rekordbox6Database
     if db_path:
-        return pyrekordbox.Rekordbox6Database(path=str(Path(db_path).parent))
-    return pyrekordbox.Rekordbox6Database()
+        return database(path=str(Path(db_path).parent))
+    return database()
 
 
 def db_file(db_path=None) -> Path:
@@ -456,6 +475,8 @@ def cmd_tags(args):
         calls += 1
         if calls % 25 == 0 or calls == total:
             print(f"  {calls}/{total}", flush=True)
+        if calls % 50 == 0:
+            save_cache(cache_path, cache)
         if calls < total:
             time.sleep(1 / args.rate)
 
@@ -489,23 +510,19 @@ def cmd_slices(args):
     tax = load_taxonomy(args.taxonomy)
     with open(args.tracks) as fh:
         tracks = json.load(fh)
-    by_family = defaultdict(list)
-    for cid, t in tracks.items():
-        fam = tax["from"].get(t["genre"])
-        if not fam:
-            sys.exit(f"track {cid}: genre {t['genre']!r} is not mapped to a family in the taxonomy")
-        by_family[fam].append(t)
+    by_family = family_groups(tracks, tax)
     outdir = Path(args.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
     made = 0
     for fam, ts in sorted(by_family.items()):
         ts.sort(key=lambda t: (t["artist"].lower(), t["album"], t["title"]))
+        tier2_menu, tier3_menu = slice_menu(tax, fam)
         chunks = [ts[i:i + args.max_per_slice] for i in range(0, len(ts), args.max_per_slice)]
         for chunk in chunks:
             path = outdir / f"slice_{made:02d}.json"
             json.dump({"slice": path.stem, "family": fam, "tier1_vocabulary": tax["tier1"],
-                       "tier2_menu": tax["menu"][fam]["tier2"],
-                       "tier3_menu": tax["menu"][fam]["tier3"], "tracks": chunk},
+                       "tier2_menu": tier2_menu,
+                       "tier3_menu": tier3_menu, "tracks": chunk},
                       open(path, "w"), ensure_ascii=False, indent=1)
             print(f"  {path.name}  {fam:<24}{len(chunk):>5} tracks")
             made += 1
@@ -705,8 +722,11 @@ def cmd_verify(args):
         for pid, name, smart in con.execute(text(
                 "select ID,Name,SmartList from djmdPlaylist where SmartList is not null")).fetchall():
             try:
+                from pyrekordbox.masterdb import DjmdContent, SmartList
+            except ImportError:
                 from pyrekordbox.db6.smartlist import SmartList
                 from pyrekordbox.db6.tables import DjmdContent
+            try:
                 sl = SmartList()
                 sl.parse(smart)
                 n = len(con.execute(select(DjmdContent.ID).where(sl.filter_clause())).fetchall())
@@ -763,8 +783,12 @@ def cmd_rekey(args):
 
 def cmd_smartlist(args):
     from sqlalchemy import text, select
-    from pyrekordbox.db6.smartlist import SmartList, LogicalOperator, Property, Operator
-    from pyrekordbox.db6.tables import DjmdContent
+    try:
+        from pyrekordbox.masterdb import DjmdContent, SmartList
+        from pyrekordbox.masterdb.smartlist import LogicalOperator, Operator, Property
+    except ImportError:
+        from pyrekordbox.db6.smartlist import SmartList, LogicalOperator, Property, Operator
+        from pyrekordbox.db6.tables import DjmdContent
     db = connect(args.db)
     with db.engine.connect() as con:
         pid = con.execute(text("select ID from djmdPlaylist where Name=:n"), {"n": args.playlist}).scalar()

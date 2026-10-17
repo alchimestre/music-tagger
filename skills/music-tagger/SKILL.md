@@ -34,7 +34,7 @@ Rules that the applier enforces:
 - names stay in the library's language and casing style, 2-4 words, Title Case;
 - a tier-2 entry may name its exemplar artists or labels in its description: that steers the classifiers far better than an abstract definition.
 
-Completion: the coverage assertion passes (the survey's genre list is fully mapped), there are no name collisions, and you can state each family's blob risk in one line.
+Completion: every track lands in a family or the `Unmapped` review slice, there are no name collisions, and you can state each family's blob risk in one line. Fix obvious missing mappings in `from` before accepting an `Unmapped` slice.
 
 ## 3. Classify
 
@@ -48,7 +48,7 @@ scripts/rbtag.py tags --tracks work/tracks.json --out work/tracks.tags.json --tr
 
 It calls `artist.gettoptags` once per distinct artist and `track.gettoptags` once per distinct artist and title, paced at four requests a second. Both are cached in `work/lastfm_cache.json`. It writes `lastfm.tags` and, with `--track-tags`, `lastfm.track.tags` onto every track. Use `work/tracks.tags.json` as the input to `slices`.
 
-Evidence per track: artist, album, label, year, BPM, the *original* file tag string, path, the artist's Last.fm tags, plus any research notes from earlier rounds. Where the evidence decides mechanically, decide mechanically. Where it needs judgement, slice by family and delegate — one family per slice keeps the menu small and the answers coherent; `reference/delegation.md` holds the slice format, the subagent task template and the verdict schema.
+Evidence per track: artist, album, label, year, BPM, the *original* file tag string, path, the artist's Last.fm tags, plus any research notes from earlier rounds. Where the evidence decides mechanically, decide mechanically. Where it needs judgement, slice by family and delegate — one family per slice keeps the menu small and the answers coherent; `reference/delegation.md` holds the slice format, the subagent task template and the verdict schema. Tracks whose genre is missing or unrecognised land in an `Unmapped` slice; assign their tier1 from the evidence.
 
 Last.fm tags are artist-level listener evidence: strongest first, and noisy (places, moods, platforms). They do not replace the release. For release-level facts use the iTunes and Deezer search APIs, individual `*.bandcamp.com` subdomains, and Beatport pages through the `r.jina.ai` text proxy. MusicBrainz and Discogs are skipped: MB genre votes are sparse on the long tail and capped at one request per second, and Discogs blocks API requests. Assign genre from the release, never from tempo alone.
 
@@ -76,4 +76,4 @@ The agent cannot photograph the app: DB-level checks plus a human glance at the 
 - `reference/database.md` — schema notes, insert templates, write order, orphan cleanup, backup layout, guarded fields.
 - `reference/smartlists.md` — smart playlist XML, the operator/property vocabulary, how tag conditions encode, escaping.
 - `reference/delegation.md` — slice and verdict schemas, subagent task template, normalisation rules.
-- `taxonomy.json` — the shipped vocabulary: 15 families, 106 subgenre candidates, 133 niche candidates.
+- `taxonomy.json` — the shipped vocabulary: 15 families, 107 subgenre candidates, 133 niche candidates.
