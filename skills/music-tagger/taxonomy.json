@@ -4,12 +4,13 @@
     "tier2": "My Tag column 'Subgenre' - one per track. Flat list, globally unique names.",
     "tier3": "My Tag column 'Niche' - zero or one per track, only when it adds real information. Flat list, globally unique names.",
     "rule": "tags per track = 1 (tier1) + 1 (tier2) + 0..1 (tier3) = 2 or 3.",
+    "from": "rekordbox Genre values seen on import, each routed to one family. A value maps once; a family name maps to itself. An unmapped value lands in the Unmapped slice, which offers the full tier2 and tier3 vocabulary.",
     "normalisation": "tier2/tier3 names must not collide with each other; identical albums get their majority verdict."
   },
   "groups": [
     {
       "tier1": "Techno",
-      "from": ["Techno", "Techno (Raw / Deep / Hypnotic)", "Hard Techno", "Deep Techno"],
+      "from": ["Techno", "Techno (Raw / Deep / Hypnotic)", "Hard Techno", "Deep Techno", "Acid Techno", "Techno / Acid", "Hypnotic Techno"],
       "tier2": {
         "Raw / Deep / Hypnotic": "loopy, hypnotic club techno (Tome, UFO95, Mathys Lenne)",
         "Deep Techno": "deep, spacious, dub-tinged techno (Hypnus, WSNWG, Polygonia, Deepbass, Téo Dréan)",
@@ -27,7 +28,7 @@
     },
     {
       "tier1": "House",
-      "from": ["House", "Deep House", "Tech House", "Minimal / Deep Tech", "Melodic House & Techno"],
+      "from": ["House", "Deep House", "Tech House", "Minimal / Deep Tech", "Melodic House & Techno", "Dance"],
       "tier2": {
         "Deep House": "warm, deep, classic house (Timboletti, Borrowed Identity, Landhouse)",
         "Tech House": "functional tech house (Aziz Konkrite, Abraxsophia, Hakim)",
@@ -44,7 +45,7 @@
     },
     {
       "tier1": "Trance & Psy",
-      "from": ["Psy-Trance", "Trance"],
+      "from": ["Psy-Trance", "Trance", "Psychedelic"],
       "tier2": {
         "Progressive Psy-Trance": "progressive psy (Hypnagog, Perfect Stranger, Iboga, Dekel)",
         "Full-On Psy-Trance": "full-on psy (Nano, HOM-Mega, Humanoids, Gorovich)",
@@ -59,7 +60,7 @@
     },
     {
       "tier1": "Bass & Breaks",
-      "from": ["Breakbeat / Bass", "Drum & Bass", "Acid Core"],
+      "from": ["Breakbeat / Bass", "Drum & Bass", "Acid Core", "Tribe"],
       "tier2": {
         "Breakbeat / Breaks": "breakbeat, electro-breaks (Guy Contact, Djrum breaks)",
         "UK Bass / Dubstep": "dubstep and UK bass weight (Coloursound, Maara)",
@@ -98,7 +99,7 @@
     },
     {
       "tier1": "Ambient & Experimental",
-      "from": ["Ambient / Experimental"],
+      "from": ["Ambient / Experimental", "Electronic", "Ambient", "Experimental"],
       "tier2": {
         "Ambient": "ambient (Tangerine Dream, Marina Herlop, Reflections)",
         "Drone / Deep Listening": "drone, deep listening (Coil, Tangerine Dream)",
@@ -137,7 +138,7 @@
     },
     {
       "tier1": "Hip Hop",
-      "from": ["Hip Hop"],
+      "from": ["Hip Hop", "Hip-Hop", "Rap", "Rap/Hip Hop"],
       "tier2": {
         "Boom Bap / Conscious": "boom bap, conscious (Kendrick Lamar, Shabazz Palaces)",
         "Instrumental Hip Hop": "instrumental hip hop (Madlib, Nujabes)",
@@ -149,7 +150,7 @@
     },
     {
       "tier1": "Rock & Psych",
-      "from": ["Rock"],
+      "from": ["Rock", "Alternative & Indie", "Alternative"],
       "tier2": {
         "Psychedelic Rock": "psychedelic rock",
         "Anatolian / Turkish Psych": "Anatolian psych, Turkish folk-rock (Derya Yıldırım, Baba Zula, Altın Gün)",
@@ -164,7 +165,7 @@
     },
     {
       "tier1": "Pop & Chanson",
-      "from": ["Pop"],
+      "from": ["Pop", "Chanson Fr"],
       "tier2": {
         "Pop": "pop (Stromae, Aili)",
         "French Chanson": "French chanson (Claude François)",
@@ -176,7 +177,7 @@
     },
     {
       "tier1": "World",
-      "from": ["World"],
+      "from": ["World", "WOR"],
       "tier2": {
         "Maghreb & Mashriq": "North Africa and Arabic east (Bachar Mar-Khalifé, Maryam Saleh, Rai, chaabi, mahraganat)",
         "Anatolia & Levant": "Turkey, Levant, Armenian (Hayk Karoyi)",
@@ -195,7 +196,7 @@
     },
     {
       "tier1": "Folk & Roots",
-      "from": ["Folk"],
+      "from": ["Folk", "Folk Francia", "Circassian Folk Music"],
       "tier2": {
         "Occitan & French Folk": "Occitan, Auvergnat, French regional (Cocanha, Super Parquet)",
         "Mediterranean Polyphony": "Corsican, Sardinian, Cretan polyphony (Gidiki)",
@@ -204,13 +205,15 @@
         "Celtic & Nordic": "Celtic, Nordic, Sámi",
         "Drone / Weird Folk": "drone-folk, weird folk (La Tène)",
         "Sacred & Liturgical Folk": "sacred and liturgical roots",
-        "Central Asian / Sufi": "Central Asian and Sufi traditions"
+        "Central Asian / Sufi": "Central Asian and Sufi traditions",
+        "Blues": "acoustic and electric blues: Delta, hill country, Chicago (R.L. Burnside, Muddy Waters, Lead Belly)",
+        "Iberian Folk & Flamenco": "Galician, Catalan, Basque, Portuguese fado, flamenco (Baiuca, Raffut, Deolinda, Estrella Morente)"
       },
-      "tier3": ["Vocal Polyphony", "Cabrette / Bal", "Drone / Bourdon", "Sung Epics", "Lament / Lullaby", "Work Song", "Sacred / Liturgical", "Ceilidh / Dance Tune", "Balkan Brass", "Anatolian Aşık", "Corsican / Sardinian", "Occitan / Auvergnat", "Breton", "Sámi / Nordic"]
+      "tier3": ["Vocal Polyphony", "Cabrette / Bal", "Drone / Bourdon", "Sung Epics", "Lament / Lullaby", "Work Song", "Sacred / Liturgical", "Ceilidh / Dance Tune", "Balkan Brass", "Anatolian Aşık", "Corsican / Sardinian", "Occitan / Auvergnat", "Breton", "Sámi / Nordic", "Delta / Hill Country", "Chicago / Electric", "Galician / Gaita", "Catalan", "Fado", "Flamenco"]
     },
     {
       "tier1": "Classical & Sacred",
-      "from": ["Classical"],
+      "from": ["Classical", "Klassik", "Neoclassical"],
       "tier2": {
         "Modern Classical / Minimalism": "modern classical, minimalism (Philip Glass)",
         "Medieval / Early Music": "medieval, early music (Hildegard von Bingen, Anonyme c.1200)",
